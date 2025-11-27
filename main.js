@@ -27,8 +27,13 @@ tabs.forEach(tab => {
   });
 });
 
-// TMDB Key input
-document.getElementById('tmdb-key').value = tmdbKey;
+// TMDB Key input (auto-save)
+const tmdbInput = document.getElementById('tmdb-key');
+tmdbInput.value = tmdbKey;
+tmdbInput.addEventListener('input', ()=>{
+  tmdbKey = tmdbInput.value.trim();
+  localStorage.setItem('tmdbKey', tmdbKey);
+});
 
 // Plugin management UI
 const pluginJsonInput = document.createElement('textarea');
@@ -92,19 +97,35 @@ addPluginBtn.onclick = ()=>{
   renderPlugins();
 };
 
-document.getElementById('save-settings').onclick = ()=>{
-  tmdbKey = document.getElementById('tmdb-key').value.trim();
-  localStorage.setItem('tmdbKey', tmdbKey);
-  alert('Settings saved!');
-};
-
 renderPlugins();
 
 const api = url => fetch(url).then(r=>r.json());
 
-async function loadMovies(){
+// Search bar creation
+function createSearchBar(containerId, callback){
+  let container = document.getElementById(containerId);
+  const searchDiv = document.createElement('div');
+  searchDiv.style.gridColumn = '1/-1';
+  searchDiv.style.margin = '8px';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'Search...';
+  input.style.width = '100%';
+  input.style.padding = '6px';
+  input.addEventListener('input', ()=>callback(input.value));
+  searchDiv.appendChild(input);
+  container.parentNode.insertBefore(searchDiv, container);
+  return input;
+}
+
+let movieSearchInput, tvSearchInput;
+
+// Load Movies
+async function loadMovies(query=''){
   if(!tmdbKey) return;
-  const data = await api(`https://api.themoviedb.org/3/movie/popular?api_key=${tmdbKey}&language=en-US&page=1`);
+  let url = `https://api.themoviedb.org/3/movie/popular?api_key=${tmdbKey}&language=en-US&page=1`;
+  if(query) url = `https://api.themoviedb.org/3/search/movie?api_key=${tmdbKey}&language=en-US&query=${encodeURIComponent(query)}`;
+  const data = await api(url);
   const container = document.getElementById('movies');
   container.innerHTML='';
   data.results.forEach(movie=>{
@@ -116,11 +137,14 @@ async function loadMovies(){
   });
 }
 
-async function loadTV(){
+// Load TV Shows
+async function loadTV(query=''){
   if(!tmdbKey) return;
-  const data = await api(`https://api.themoviedb.org/3/tv/popular?api_key=${tmdbKey}&language=en-US&page=1`);
+  let url = `https://api.themoviedb.org/3/tv/popular?api_key=${tmdbKey}&language=en-US&page=1`;
+  if(query) url = `https://api.themoviedb.org/3/search/tv?api_key=${tmdbKey}&language=en-US&query=${encodeURIComponent(query)}`;
   const container = document.getElementById('tv');
   container.innerHTML='';
+  const data = await api(url);
   data.results.forEach(show=>{
     const card = document.createElement('div'); card.className='card';
     card.innerHTML=`<img src="https://image.tmdb.org/t/p/w500${show.poster_path}" alt="${show.name}">
@@ -130,6 +154,7 @@ async function loadTV(){
   });
 }
 
+// Favourites
 function loadFavourites(){
   favContainer.innerHTML='';
   favourites.forEach(item=>{
@@ -141,6 +166,7 @@ function loadFavourites(){
   });
 }
 
+// Modals
 const modal = document.getElementById('details-modal');
 const playerModal = document.getElementById('player-modal');
 modal.querySelector('.close-btn').addEventListener('click',()=>modal.classList.add('hidden'));
@@ -149,6 +175,7 @@ playerModal.querySelector('.close-btn').addEventListener('click',()=>{
   playerModal.classList.add('hidden');
 });
 
+// Details
 async function openDetails(item,type){
   document.getElementById('details-title').textContent = type==='movie'?item.title:item.name;
   document.getElementById('details-overview').textContent = item.overview;
@@ -197,6 +224,7 @@ async function openDetails(item,type){
   modal.classList.remove('hidden');
 }
 
+// Play episode/movie
 function playEpisode(id, season, episode, type){
   if(!plugins || plugins.length === 0) return alert('No plugin configured');
 
@@ -238,4 +266,9 @@ function playEpisode(id, season, episode, type){
 window.onload = ()=>{
   renderPlugins();
   loadMovies();
+  loadTV();
+
+  // Add search bars
+  movieSearchInput = createSearchBar('movies', (val)=>loadMovies(val));
+  tvSearchInput = createSearchBar('tv', (val)=>loadTV(val));
 };
