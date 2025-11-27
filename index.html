@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Streamly</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Streamly</h1>
+    </header>
+
+    <main id="content">
+      <div id="movies" class="tab-content grid"></div>
+      <div id="tv" class="tab-content grid"></div>
+      <div id="favs" class="tab-content grid"></div>
+      <div id="settings" class="tab-content">
+        <div class="settings-group">
+          <label for="tmdb-key">TMDB API Key</label>
+          <input type="text" id="tmdb-key" placeholder="Enter TMDB key">
+        </div>
+        <div class="settings-group">
+          <label for="plugin-json">Plugins JSON (array)</label>
+          <textarea id="plugin-json" placeholder='[{"url":"","tv_url":"","name":"","logo":""}]'></textarea>
+        </div>
+        <button id="save-settings">Save Settings</button>
+      </div>
+    </main>
+
+    <nav class="tab-bar">
+      <button data-tab="movies" class="tab active"><span class="icon">🎬</span><span class="label">Movies</span></button>
+      <button data-tab="tv" class="tab"><span class="icon">📺</span><span class="label">TV Shows</span></button>
+      <button data-tab="favs" class="tab"><span class="icon">❤️</span><span class="label">Favourites</span></button>
+      <button data-tab="settings" class="tab"><span class="icon">⚙️</span><span class="label">Settings</span></button>
+    </nav>
+  </div>
+
+  <div id="details-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-btn">&times;</button>
+      <img id="details-image" src="" alt="Show Poster">
+      <h2 id="details-title"></h2>
+      <p id="details-overview"></p>
+      <select id="season-select"></select>
+      <ul id="episode-list"></ul>
+      <select id="plugin-select" class="hidden"></select>
+      <button id="play-episode">Play</button>
+    </div>
+  </div>
+
+  <div id="player-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-btn">&times;</button>
+      <iframe id="player-frame" src="" frameborder="0" allowfullscreen></iframe>
+    </div>
+  </div>
+
+<script src="main.js"></script>
+</body>
+</html>
