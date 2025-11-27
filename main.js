@@ -2,7 +2,6 @@ let tmdbKey = localStorage.getItem('tmdbKey') || '';
 let favourites = JSON.parse(localStorage.getItem('favourites') || '[]');
 let recently = JSON.parse(localStorage.getItem('recently') || '[]');
 
-// Load plugins safely
 let plugins = [];
 try {
   const raw = localStorage.getItem('plugins');
@@ -21,8 +20,8 @@ tabs.forEach(tab => {
     tab.classList.add('active');
     contents.forEach(c=>c.style.display='none');
     document.getElementById(tab.dataset.tab).style.display=tab.dataset.tab==='settings'? 'block':'grid';
-    if(tab.dataset.tab==='movies') loadMovies();
-    if(tab.dataset.tab==='tv') loadTV();
+    if(tab.dataset.tab==='movies') loadMovies(movieSearchInput?.value||'');
+    if(tab.dataset.tab==='tv') loadTV(tvSearchInput?.value||'');
     if(tab.dataset.tab==='favs') loadFavourites();
   });
 });
@@ -120,14 +119,16 @@ function createSearchBar(containerId, callback){
 
 let movieSearchInput, tvSearchInput;
 
-// Load Movies
+// Load Movies (fixed)
 async function loadMovies(query=''){
   if(!tmdbKey) return;
-  let url = `https://api.themoviedb.org/3/movie/popular?api_key=${tmdbKey}&language=en-US&page=1`;
-  if(query) url = `https://api.themoviedb.org/3/search/movie?api_key=${tmdbKey}&language=en-US&query=${encodeURIComponent(query)}`;
+  let url = query
+    ? `https://api.themoviedb.org/3/search/movie?api_key=${tmdbKey}&language=en-US&query=${encodeURIComponent(query)}`
+    : `https://api.themoviedb.org/3/movie/popular?api_key=${tmdbKey}&language=en-US&page=1`;
   const data = await api(url);
   const container = document.getElementById('movies');
   container.innerHTML='';
+  if(!data.results) return;
   data.results.forEach(movie=>{
     const card = document.createElement('div'); card.className='card';
     card.innerHTML=`<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">
@@ -137,14 +138,16 @@ async function loadMovies(query=''){
   });
 }
 
-// Load TV Shows
+// Load TV Shows (fixed)
 async function loadTV(query=''){
   if(!tmdbKey) return;
-  let url = `https://api.themoviedb.org/3/tv/popular?api_key=${tmdbKey}&language=en-US&page=1`;
-  if(query) url = `https://api.themoviedb.org/3/search/tv?api_key=${tmdbKey}&language=en-US&query=${encodeURIComponent(query)}`;
+  let url = query
+    ? `https://api.themoviedb.org/3/search/tv?api_key=${tmdbKey}&language=en-US&query=${encodeURIComponent(query)}`
+    : `https://api.themoviedb.org/3/tv/popular?api_key=${tmdbKey}&language=en-US&page=1`;
   const container = document.getElementById('tv');
   container.innerHTML='';
   const data = await api(url);
+  if(!data.results) return;
   data.results.forEach(show=>{
     const card = document.createElement('div'); card.className='card';
     card.innerHTML=`<img src="https://image.tmdb.org/t/p/w500${show.poster_path}" alt="${show.name}">
