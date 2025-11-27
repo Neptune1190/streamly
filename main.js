@@ -103,23 +103,32 @@ const api = url => fetch(url).then(r=>r.json());
 // Search bar creation
 function createSearchBar(containerId, callback){
   let container = document.getElementById(containerId);
+
+  // Remove any existing search bar in this container
+  const existing = container.querySelector('.search-bar');
+  if(existing) existing.remove();
+
   const searchDiv = document.createElement('div');
-  searchDiv.style.gridColumn = '1/-1';
-  searchDiv.style.margin = '8px';
+  searchDiv.className = 'search-bar';
+  searchDiv.style.width = '100%';
+  searchDiv.style.marginBottom = '8px';
+
   const input = document.createElement('input');
   input.type = 'text';
   input.placeholder = 'Search...';
   input.style.width = '100%';
   input.style.padding = '6px';
   input.addEventListener('input', ()=>callback(input.value));
+
   searchDiv.appendChild(input);
-  container.parentNode.insertBefore(searchDiv, container);
+  container.prepend(searchDiv);
+
   return input;
 }
 
 let movieSearchInput, tvSearchInput;
 
-// Load Movies (fixed)
+// Load Movies
 async function loadMovies(query=''){
   if(!tmdbKey) return;
   let url = query
@@ -138,7 +147,7 @@ async function loadMovies(query=''){
   });
 }
 
-// Load TV Shows (fixed)
+// Load TV Shows
 async function loadTV(query=''){
   if(!tmdbKey) return;
   let url = query
@@ -268,10 +277,12 @@ function playEpisode(id, season, episode, type){
 // Safe window.onload: no redirects
 window.onload = ()=>{
   renderPlugins();
-  loadMovies();
-  loadTV();
 
-  // Add search bars
+  // Add search bars **inside correct containers**
   movieSearchInput = createSearchBar('movies', (val)=>loadMovies(val));
   tvSearchInput = createSearchBar('tv', (val)=>loadTV(val));
+
+  // Load initial data
+  loadMovies();
+  loadTV();
 };
